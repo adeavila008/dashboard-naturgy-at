@@ -827,6 +827,7 @@ body.on-p7 .date-filter-bar { display: none !important; }
     <div class="filter-bar">
       <label>Colaborador: <select id="act-colab"><option value="">Todos</option></select></label>
       <label>Proyecto: <select id="act-proy"><option value="">Todos</option></select></label>
+      <label>Responsable: <select id="act-resp"><option value="">Todos</option></select></label>
       <label>Desde: <input type="date" id="act-fecha-desde" style="padding:4px;border:1px solid var(--gris-borde);border-radius:5px;font-family:inherit;font-size:12px;"></label>
       <label>Hasta: <input type="date" id="act-fecha-hasta" style="padding:4px;border:1px solid var(--gris-borde);border-radius:5px;font-family:inherit;font-size:12px;"></label>
       <button id="act-clear-dates" style="padding:4px 10px;border:1px solid var(--gris-borde);background:#fff;border-radius:5px;font-size:11.5px;cursor:pointer;color:var(--dim);" title="Limpiar fechas">✕ Fechas</button>
@@ -1536,21 +1537,29 @@ function renderPage5() {
   }
   if (proySelect) {
     const prev = proySelect.value;
-    // Show canonical Naturgy name if available, else raw project name
     const vals = [...new Set(data.map(r => r.nombre_naturgy || r.proyecto).filter(Boolean))].sort();
     proySelect.innerHTML = '<option value="">Todos</option>' + vals.map(v => `<option>${v}</option>`).join('');
     if (vals.includes(prev)) proySelect.value = prev;
+  }
+  const respSelect = document.getElementById('act-resp');
+  if (respSelect) {
+    const prev = respSelect.value;
+    const vals = [...new Set(data.map(r => r.responsable).filter(Boolean))].sort();
+    respSelect.innerHTML = '<option value="">Todos</option>' + vals.map(v => `<option>${v}</option>`).join('');
+    if (vals.includes(prev)) respSelect.value = prev;
   }
 
   function renderActTable() {
     const colF    = colabSelect ? colabSelect.value : '';
     const proyF   = proySelect  ? proySelect.value  : '';
+    const respF   = respSelect  ? respSelect.value  : '';
     const desdeF  = (document.getElementById('act-fecha-desde') || {}).value || '';
     const hastaF  = (document.getElementById('act-fecha-hasta') || {}).value || '';
 
     const filtered = data.filter(r =>
       (!colF   || r.responsable === colF) &&
       (!proyF  || (r.nombre_naturgy || r.proyecto) === proyF) &&
+      (!respF  || r.responsable === respF) &&
       (!desdeF || r.fecha_inicio >= desdeF) &&
       (!hastaF || r.fecha_inicio <= hastaF)
     );
@@ -1634,6 +1643,7 @@ function renderPage5() {
     const h = () => { if (window._renderActTable) window._renderActTable(); };
     if (colabSelect) colabSelect.addEventListener('change', h);
     if (proySelect)  proySelect.addEventListener('change', h);
+    if (respSelect)  respSelect.addEventListener('change', h);
     const desdeEl = document.getElementById('act-fecha-desde');
     const hastaEl = document.getElementById('act-fecha-hasta');
     const clearDatesBtn = document.getElementById('act-clear-dates');
@@ -2734,7 +2744,7 @@ function renderSegTable() {
   });
 
   const cnt = document.getElementById('seg-count');
-  if (cnt) cnt.textContent = filtered.length + ' de ' + SEG_DATA.length + ' registros';
+  if (cnt) cnt.textContent = filtered.length + ' de ' + baseData.length + ' registros';
 
   if (!SEG_DATA.length) {
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--mute);font-style:italic;">Carga el archivo de Seguimiento para ver los registros</td></tr>';
